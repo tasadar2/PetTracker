@@ -1,7 +1,7 @@
 local Addon = PetTracker
 local Record = Addon:NewClass('Button', 'Record', 'PetTrackerRecord')
 
-local IdMatch = strrep('%w', 16)
+local IdMatch = strrep('.', 24)
 local SpellsMatch = strrep('(%w%w%w)', 3)
 local PetMatch = '(%w)' .. SpellsMatch .. '(' .. IdMatch .. ')'
 
@@ -11,7 +11,7 @@ function Record:Display(entry)
 	self:SetNormalFontObject(self.won and GameFontGreen or GameFontRed)
 	self:SetText(self.won and 'Victory' or 'Defeat')
 	self:Show()
-
+	
 	for i, pet in ipairs(self.pets) do
 		local button = self.Content['Pet' .. i]
 		button:SetNormalTexture(select(9, C_PetJournal.GetPetInfoByPetID(pet.id)))
@@ -35,7 +35,7 @@ function Record:Unpack(entry)
 
 	for health, spell1, spell2, spell3, id in petData:gmatch(PetMatch) do
 		tinsert(self.pets, {
-			id = '0x' .. id,
+			id = id,
 			health = tonumber(health, 16) / 15,
 			spells = {tonumber(spell1, 16), tonumber(spell2, 16), tonumber(spell3, 16)}
 		})

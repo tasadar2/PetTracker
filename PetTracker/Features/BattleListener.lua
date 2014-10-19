@@ -24,6 +24,7 @@ local Listener = Addon:NewModule('BattleListener', CreateFrame('Frame'))
 
 function Listener:Startup()
 	Addon.Sets.TamerHistory = Addon.Sets.TamerHistory or {}
+	self:FixTamerHistory()
 	if not Addon.State.Casts then
 		self:Reset()
 	end
@@ -33,6 +34,19 @@ function Listener:Startup()
 	self:SetScript('OnEvent', function(self, event, ...)
 		self[event](self, ...)
 	end)
+end
+
+function Listener:FixTamerHistory()
+	for tamerId, tamerData in pairs(Addon.Sets.TamerHistory) do
+		for recordId, recordData in pairs(tamerData) do
+			local recordLen = recordData:len()
+			if recordLen == 82 and recordData:sub(15,18) == '0000' then --Pre 6.0 Patch
+				Addon.Sets.TamerHistory[tamerId][recordId] = recordData:sub(1,14) .. 'BattlePet-0-' .. recordData:sub(19,40) .. 'BattlePet-0-' .. recordData:sub(45,66) .. 'BattlePet-0-' .. recordData:sub(71,82)
+			elseif recordLen == 100 and recordData:sub(15,18) == 'ttle' then --Post 6.0 Bug in PetTamer
+				Addon.Sets.TamerHistory[tamerId][recordId] = recordData:sub(1,14) .. 'Ba' .. recordData:sub(15,46) .. 'Ba' .. recordData:sub(47,78) .. 'Ba' .. recordData:sub(79,100)
+			end
+		end
+	end
 end
 
 function Listener:Reset()
@@ -82,7 +96,7 @@ function Listener:PET_BATTLE_FINAL_ROUND(winner)
 
 			entry = entry .. format('%01x', ceil(health * 15))
 						  .. format('%03x', spell1) .. format('%03x', spell2) .. format('%03x', spell3)
-						  .. id:sub(3)
+						  .. id
 		end
 
 		tinsert(history, 1, entry)
